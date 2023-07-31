@@ -6,25 +6,53 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MyToken is ERC20, ERC20Burnable, Ownable {
+    event Redeem(address indexed player, uint256 amount, string itemName);
+
+    struct InGameItem {
+        uint256 price; // The price of the item in tokens
+        uint256 quantity; // The quantity available in the store
+    }
+
+    mapping(string => InGameItem) private inGameStore;
+
     constructor() ERC20("Dengen", "DGN") {}
 
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 
-    // Redeems tokens for in-game items or other purposes
-    function redeem(uint256 amount) public {
-        require(amount > 0, "Amount must be greater than zero");
-        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+    function addItemToStore(string memory itemName, uint256 price, uint256 quantity) public onlyOwner {
+        require(price > 0, "Price should be greater than 0");
+        require(quantity > 0, "Quantity should be greater than 0");
 
-        _burn(msg.sender, amount);
-        // Perform specific redeeming logic, e.g., send in-game items, etc.
+        inGameStore[itemName] = InGameItem(price, quantity);
     }
 
-    // Check the token balance of an address
-    function checkBalance(address account) public view returns (uint256) {
-        return balanceOf(account);
+    function redeem(string memory itemName) public {
+        require(inGameStore[itemName].price > 0, "Item not available in the store");
+        require(balanceOf(msg.sender) >= inGameStore[itemName].price, "Insufficient balance");
+        require(inGameStore[itemName].quantity > 0, "Item out of stock");
+
+        // Perform your in-game store redemption logic here
+        // ...
+
+        // Transfer tokens to the owner (or designated account for the store)
+        _transfer(msg.sender, owner(), inGameStore[itemName].price);
+
+        // Update the quantity of the item in the store
+        inGameStore[itemName].quantity--;
+
+        emit Redeem(msg.sender, inGameStore[itemName].price, itemName);
     }
 
+    function checkBalance(address player) public view returns (uint256) {
+        return balanceOf(player);
+    }
 
+    function getInGameItemDetails(string memory itemName) public view returns (uint256 price, uint256 quantity) {
+        return (inGameStore[itemName].price, inGameStore[itemName].quantity);
+    }
 }
+
+
+
