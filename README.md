@@ -9,7 +9,7 @@ The Dengen Token (DGN) is an ERC20-compliant token deployed on the Ethereum bloc
 
 ## Contract Details
 
-- Contract Name: `Dengen`
+- Contract Name: `MyToken`
 - Symbol: `DGN`
 - Initial Supply: Deployer's address is credited with the total supply of tokens during deployment.
 
