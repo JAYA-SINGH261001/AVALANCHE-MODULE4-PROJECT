@@ -1,58 +1,62 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18; 
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+contract MyToken {
 
-contract MyToken is ERC20, ERC20Burnable, Ownable {
-    event Redeem(address indexed player, uint256 amount, string itemName);
+    uint256 public totalSupply;
+    address public owner;
+    string public name = "DEGEN";
+    string public symbol = "DGN";
+    uint8 public decimals = 18;
 
-    struct InGameItem {
-        uint256 price; // The price of the item in tokens
-        uint256 quantity; // The quantity available in the store
+    constructor() {
+        owner = msg.sender;
     }
 
-    mapping(string => InGameItem) private inGameStore;
+    mapping(address => uint256) public balances;
 
-    constructor() ERC20("Dengen", "DGN") {}
+    // Mint function
+    function mint(address to, uint256 amount) public {
+        require(msg.sender == owner, "The token can be mint by owner only.");
+        require(amount > 0, "Amount must be greater than 0.");
 
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+        balances[to] += amount;
+        totalSupply += amount;
     }
 
-    function addItemToStore(string memory itemName, uint256 price, uint256 quantity) public onlyOwner {
-        require(price > 0, "Price should be greater than 0");
-        require(quantity > 0, "Quantity should be greater than 0");
+    // Burn function
+    function burn(address from, uint256 amount) public {
+        require(amount <= balances[from], "Insufficient Balance.");
 
-        inGameStore[itemName] = InGameItem(price, quantity);
+        balances[from] -= amount;
+        totalSupply -= amount;
     }
 
-    function redeem(string memory itemName) public {
-        require(inGameStore[itemName].price > 0, "Item not available in the store");
-        require(balanceOf(msg.sender) >= inGameStore[itemName].price, "Insufficient balance");
-        require(inGameStore[itemName].quantity > 0, "Item out of stock");
+    // Redeem function
+    function redeem(address to, uint256 amount, uint256 gameItem) public { 
+        require(amount <= balances[to], "Amount exceeds balance");
 
-        // Perform your in-game store redemption logic here
-        // ...
-
-        // Transfer tokens to the owner (or designated account for the store)
-        _transfer(msg.sender, owner(), inGameStore[itemName].price);
-
-        // Update the quantity of the item in the store
-        inGameStore[itemName].quantity--;
-
-        emit Redeem(msg.sender, inGameStore[itemName].price, itemName);
+        if (gameItem == 1) {
+            require(amount >= 50, "Insufficient tokens for Game Item 1");
+            burn(to, amount);
+        } else if (gameItem == 2) {
+            require(amount >= 100, "Insufficient tokens for Game Item 2");
+            burn(to, amount);
+        } else if (gameItem == 3) {
+            require(amount>=200, "Insufficient tokens for Game Item 3");
+            burn(to, amount);
+        } else {
+            revert("Invalid game item");
+        }
     }
 
-    function checkBalance(address player) public view returns (uint256) {
-        return balanceOf(player);
-    }
+    // Transfer function
+    function transfer(address to, uint256 amount) public {
+        require(amount <= balances[msg.sender], "Amount exceeds balance.");
+        require(to != address(0), "Cannot transfer to the zero address.");
 
-    function getInGameItemDetails(string memory itemName) public view returns (uint256 price, uint256 quantity) {
-        return (inGameStore[itemName].price, inGameStore[itemName].quantity);
-    }
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    } 
 }
-
-
 
