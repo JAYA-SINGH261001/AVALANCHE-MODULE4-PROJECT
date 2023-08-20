@@ -72,8 +72,8 @@ To deploy this contract, you can use tools like Remix or Truffle. Ensure you hav
 ```
 
 Feel free to modify and expand this template to include more details or specific usage instructions if needed. Additionally, you might want to add information about deployment, testing, and any dependencies your contract relies on.
-## License
+# License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-## Author
+# Author
 Jaya Singh
